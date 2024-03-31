@@ -1,35 +1,22 @@
 from pyautogui import locateCenterOnScreen, ImageNotFoundException, click, doubleClick, moveTo
 from time import sleep
 
+#pip install pyautogui
+#pip install opencv_python
 
 """got a collect key"""
 #close notification
 #collect button
-#
-
-def mapOnScreen():
-    try:
-        coordinates = locateCenterOnScreen('map.png')
-        return coordinates
-    except ImageNotFoundException:
-        return None
-
-def msmOnScreen():
-    try:
-        coordinates = locateCenterOnScreen('msm.png')
-        return coordinates
-    except ImageNotFoundException:
-        return None
-
+#setting locate on screen confidence to .5 will allow to collect jumping images
+#this could mean lighting tourches
 
 # first open the game, wait close button to be on screen
 #if not already in game open it from desktop else throw error
 
+#Currenty unused
 def openGame():
     """Opens game and ensures it's open before continuing"""
-    msm = msmOnScreen()
-    if msm:
-        msm.doubleClick()
+    pass
     #check if opened later    
     
     
@@ -42,8 +29,7 @@ def openGame():
             click()
         except ImageNotFoundException:
             return None
-    
-        
+         
 # then confirm if there then hit close on any notifications
 def closeNotification():
     """Closes notifications that appear at the begging"""
@@ -54,64 +40,85 @@ def closeNotification():
     except ImageNotFoundException:
         return None
 
-    
-
 # Then begin main loop, collect all, confirm, map, next, go
 
 def collectAll():
     try:
-        collect_all_location = locateCenterOnScreen("collectAll.png")
+        collect_all_location = locateCenterOnScreen("collectAll.png", confidence = .7)
         if collect_all_location:
             click(collect_all_location)
-            sleep(1)
-            print("sleep")
-        confirm_location = locateCenterOnScreen("confirm.png")
+            sleep(.5)
+        confirm_location = locateCenterOnScreen("confirm.png", confidence = .7)
         if confirm_location:
             click(confirm_location)
-            sleep(1)
-            print("sleep")
-        gem_location = locateCenterOnScreen("gem.png")
+            sleep(.5)
+        gem_location = locateCenterOnScreen("gem.png", confidence = .5)
         if gem_location:
             click(gem_location)
-            sleep(1)
-            print("sleep")
+            sleep(.5)
         
     except ImageNotFoundException:
         return None
     
+def collectFood():
+    try:
+        #collect till no more found, then click once more, then retry
 
+        food_location = locateCenterOnScreen("food.png", confidence = .6)
+        if food_location:
+            click(food_location)
+            sleep(.5)
+            collectFood()
+    except ImageNotFoundException:
+        return None
+    
+def rebake():
+    click()
+    try:
+        sleep(1.5)
+        retry_location = locateCenterOnScreen("retry.png", confidence = .7)
+        if retry_location:
+            click(retry_location)
+            sleep(.5)
+        confirm_location = locateCenterOnScreen("confirm.png", confidence = .7)
+        if confirm_location:
+            click(confirm_location)
+            sleep(.5)
+    except ImageNotFoundException:
+        return None        
+
+    
 def changeMap():
     try:
         #map, next, go, pause
-        map_location = locateCenterOnScreen("map.png")
+        map_location = locateCenterOnScreen("map.png", confidence = .7)
         if map_location:
             click(map_location)
-            sleep(1)
-            print("sleep")
-        next_location = locateCenterOnScreen("next.png")
+            sleep(.5)
+        next_location = locateCenterOnScreen("next.png", confidence = .7)
         if next_location:
             click(next_location)
-            sleep(1)
-            print("sleep")
-        go_location = locateCenterOnScreen("go.png")
+            sleep(.5)
+        go_location = locateCenterOnScreen("go.png", confidence = .7)
         if go_location:
             click(go_location)
-            sleep(1)
-            print("sleep")
+            sleep(4)
     except ImageNotFoundException:
         return None
 
-
+# Main Function
 def main():
+    """Closes notification, Then Main Loop."""
     print("started")
     closeNotification()
     print("close notif")
-    sleep(1)
     while True:
         collectAll()
         print("collected")
         changeMap()
         print("map changed")
-        sleep(4)
 
-main()
+#main()
+sleep(3)
+collectFood()
+rebake()
