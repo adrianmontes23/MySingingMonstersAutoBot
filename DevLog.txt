@@ -1,0 +1,11 @@
+Didnt start logging till rn March 31
+Gonna clean up code for good practice
+Although code could be optimized,
+i'm going to organize thats it
+Part of reorganization will be 
+moving all the images into a 
+folder to make it look nicer
+
+I would like to add an Avoid Island 
+to stop this thing from checking on 
+useless islands like composer 
