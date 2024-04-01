@@ -1,5 +1,7 @@
 from pyautogui import locateCenterOnScreen, ImageNotFoundException, click, doubleClick, moveTo, locateOnScreen
 from time import sleep
+from os import listdir
+from constants import *
 
 #pip install pyautogui
 #pip install opencv_python
@@ -35,22 +37,27 @@ def isOnScreen(image):
         return False
     return False
 
+def checkAvoidIslands():
+    """If currenly on an avoided island, click next."""
+    islands = listdir("AvoidIslands")
+    for island in islands:
+        if isOnScreen(island):
+            findClick(NEXT)
+
 #Currenty unused
 def openGame():
     """Opens game and ensures it's open before continuing"""
     pass
     #check if opened later    
     
-    
-#collect daily rewards
-    def collectDaily():
-        try:
-            coordinates = locateCenterOnScreen('collect.png')
-            moveTo(coordinates)
-            sleep(.5)
-            click()
-        except ImageNotFoundException:
-            return None
+def collectDaily():
+    try:
+        coordinates = locateCenterOnScreen(COLLECT)
+        moveTo(coordinates)
+        sleep(.5)
+        click()
+    except ImageNotFoundException:
+        return None
          
 # DO NOTIFS ELSEWHERE
 # then confirm if there then hit close on any notifications
@@ -64,19 +71,19 @@ def openGame():
 #         return None
 
 def mirrorSwitch(maps = 0):
-    findClick("Images\\map.png")
-    findClick("Images\\mirror.png")
+    findClick(MAP)
+    findClick(MIRROR)
 
 def collectAll():
     """Finds and clicks on CollectAll, Confirm, then looks for gems"""
-    findClick("Images\\collectAll.png")
-    findClick("Images\\confirm.png")
-    findClick("Images\\gem.png", confidence = .5)
+    findClick(COLLECTALL)
+    findClick(CONFIRM)
+    findClick(GEM, confidence = .5)
     
 def collectFood():
     """Collects all the food available on screen until no more is found (recursive)"""
     try:
-        food_location = locateCenterOnScreen("Images\\food.png", confidence = .6)
+        food_location = locateCenterOnScreen(FOOD, confidence = .6)
         if food_location:
             click(food_location)
             sleep(.5)
@@ -89,14 +96,14 @@ def rebake():
     """Clicks on last collected Bakery then rebakes all"""
     click()
     sleep(1.5)
-    findClick("Images\\retry.png")
-    findClick("Images\\confirm.png")
+    findClick(RETRY)
+    findClick(CONFIRM)
     
 def changeMap():
     """Clicks on the map, goes next, then goes to next map"""
-    findClick("Images\\map.png")
-    findClick("Images\\next.png")
-    findClick("Images\\go.png", time = 4)
+    findClick(MAP)
+    findClick(NEXT)
+    findClick(GO, time = 4)
 
 def main():
     """Closes notification, Then Main Loop."""
@@ -111,4 +118,5 @@ def main():
         changeMap()
         print("map changed")
 
-main()
+#main()
+checkAvoidIslands()
