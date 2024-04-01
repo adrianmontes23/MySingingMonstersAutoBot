@@ -1,9 +1,9 @@
 # MySingingMonstersAutoBot
 Getting tired of collecting your gold and shards from your monsters, run this bot to collect your gold while your AFK.
 
-## TO DO
--- Figure out minimum version of python needed to run.
--- Implement mirror island accessablility
+## TODO
+-[ ] Figure out minimum version of python needed to run.
+-[ ] Implement mirror island accessablility
 
 ## How To
 Download Python, don't know which version minimum, latest works.
