@@ -6,6 +6,18 @@ Part of reorganization will be
 moving all the images into a 
 folder to make it look nicer
 
+TODO
 I would like to add an Avoid Island 
 to stop this thing from checking on 
 useless islands like composer 
+Its a b but I saw a youtuber use 
+another function to constantly detect 
+where something is on screen so Ill do 
+a while "not trigger maps" main loop then 
+hit mirror button.
+
+I changed the food thing to make it collect
+all the food available on the screen off the
+rip instead of each individual one and it 
+runs through the food faster but it seems to
+not work of its in the way of the food notifs

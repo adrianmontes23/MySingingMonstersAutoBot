@@ -1,8 +1,10 @@
-from pyautogui import locateCenterOnScreen, ImageNotFoundException, click, doubleClick, moveTo, locateOnScreen
+from pyautogui import locateCenterOnScreen, ImageNotFoundException, click, doubleClick, moveTo, locateOnScreen, locateAllOnScreen, scroll
 from time import sleep
 from os import listdir
 from constants import *
+import keyboard
 
+# CODE BY ADRIAN MONTES
 #pip install pyautogui
 #pip install opencv_python
 
@@ -18,8 +20,13 @@ from constants import *
 # isFoodCollected = False
 
 
-def findClick(image, time = .5, confidence = .7):
-    """Given an image will click on the centered location"""
+def findClick(image : str, time = .5, confidence = .7) -> None:
+    """Given an image will click on the centered location
+    
+    :param image: Image to find on screen
+    :param time: The time to wait after clicking on image
+    :param confidence: How closely the image must match the findings on screen
+    :return: None"""
     try:
         location = locateCenterOnScreen(image = image, confidence = confidence)
         if location:
@@ -38,11 +45,12 @@ def isOnScreen(image):
     return False
 
 def checkAvoidIslands():
-    """If currenly on an avoided island, click next."""
+    """If currenly on an avoided island, click next. Checks all islands in avoid islands folder again """
     islands = listdir("AvoidIslands")
     for island in islands:
         if isOnScreen(island):
             findClick(NEXT)
+            checkAvoidIslands()
 
 #Currenty unused
 def openGame():
@@ -83,14 +91,24 @@ def collectAll():
 def collectFood():
     """Collects all the food available on screen until no more is found (recursive)"""
     try:
-        food_location = locateCenterOnScreen(FOOD, confidence = .6)
-        if food_location:
-            click(food_location)
-            sleep(.5)
-            collectFood()
-            return True
+        food_found = list(locateAllOnScreen(FOOD, confidence = .6))
     except ImageNotFoundException:
         return None
+    except Exception as e:
+        print(e)
+    else:
+        food_locations = []
+        for located in food_found:
+            if len(food_locations) == 0:
+                food_locations.append(located)
+                continue
+            if not (located[0] - 10 <= food_locations[len(food_locations)-1][0] <= located[0] + 10):
+                food_locations.append(located)
+        
+        for location in food_locations:
+            click(location)
+        if len(food_locations) != 0:
+            return True
     
 def rebake():
     """Clicks on last collected Bakery then rebakes all"""
@@ -98,6 +116,7 @@ def rebake():
     sleep(1.5)
     findClick(RETRY)
     findClick(CONFIRM)
+    sleep(1.5)
     
 def changeMap():
     """Clicks on the map, goes next, then goes to next map"""
@@ -108,15 +127,28 @@ def changeMap():
 def main():
     """Closes notification, Then Main Loop."""
     print("started")
+    keyboard.press_and_release("alt+tab")
+    sleep(2)
+
+    for i in range(9):
+        scroll(-10)
     # closeNotification()
     # print("close notif")
     while True:
+        if keyboard.is_pressed('q'):
+            break
         collectAll()
+        if keyboard.is_pressed('q'):
+            break
         if collectFood():
             rebake()
+        if keyboard.is_pressed('q'):
+            break
         print("collected")
         changeMap()
+        if keyboard.is_pressed('q'):
+            break
         print("map changed")
 
-#main()
-checkAvoidIslands()
+main()
+
