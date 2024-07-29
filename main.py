@@ -3,7 +3,45 @@ from time import sleep
 from os import listdir
 from constants import *
 import keyboard
+import os
+import sys
+import subprocess
+from typing import List, Tuple
+import datetime
+import time
 
+RESTART_INTERVAL = 5400
+HIBERNATION_INTERVAL = 5400  # 1.5 hours in seconds
+
+def restart_pc():
+    print("Restarting the PC...")
+    if os.name == 'nt':  # For Windows
+        os.system('shutdown /r /t 1')
+    else:  # For Unix-based systems (Linux, macOS)
+        os.system('sudo shutdown -r now')
+
+
+def hibernate_pc():
+    if os.name == 'nt':  # Windows
+        os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
+    else:  # Linux and macOS
+        os.system("systemctl suspend")
+
+# Define the hour at which the script should shut down (24-hour format)
+SHUTDOWN_HOUR = 1  # For example, 10 PM
+SHUTDOWN_HOUR_END = 3
+
+def check_shutdown_time():
+    current_time = datetime.datetime.now()
+    if  SHUTDOWN_HOUR <= current_time.hour < SHUTDOWN_HOUR_END:
+        print(f"It's {current_time.strftime('%H:%M')}. Initiating shutdown.")
+        shutdown_pc()
+        return True
+    return False
+
+# Constants
+ITERATIONS_BEFORE_SHUTDOWN = 100  # Adjust this number as needed
+COOLDOWN_TIME = 3600  # 1 hour in seconds, adjust as needed
 # CODE BY ADRIAN MONTES
 #pip install pyautogui
 #pip install opencv_python
@@ -18,7 +56,7 @@ import keyboard
 #if not already in game open it from desktop else throw error
 
 # isFoodCollected = False
-
+waitingTime = 1.5;
 
 def findClick(image : str, time = .5, confidence = .7) -> None:
     """Given an image will click on the centered location
@@ -30,6 +68,7 @@ def findClick(image : str, time = .5, confidence = .7) -> None:
     try:
         location = locateCenterOnScreen(image = image, confidence = confidence)
         if location:
+            
             click(location)
             sleep(time)
     except ImageNotFoundException:
@@ -37,7 +76,7 @@ def findClick(image : str, time = .5, confidence = .7) -> None:
 
 def isOnScreen(image):
     try:
-        item = locateOnScreen(image = image, confidence = .7)
+        item = locateOnScreen(image = image, confidence = .76)
         if item:
             return True
     except ImageNotFoundException:
@@ -86,7 +125,12 @@ def collectAll():
     """Finds and clicks on CollectAll, Confirm, then looks for gems"""
     findClick(COLLECTALL)
     findClick(CONFIRM)
-    findClick(GEM, confidence = .5)
+    sleep(2)
+    findClick(GEM, confidence = .6)
+    sleep(1)
+    findClick(GEM, confidence = .6)
+    sleep(1)
+    findClick(GEM, confidence = .6)
     
 def collectFood():
     """Collects all the food available on screen until no more is found (recursive)"""
@@ -119,10 +163,94 @@ def rebake():
     sleep(1.5)
     
 def changeMap():
-    """Clicks on the map, goes next, then goes to next map"""
+    """Navigates through all islands in My Singing Monsters"""
+    
+    # Define the sequence of islands and their corresponding next island button
+    island_sequence: List[Tuple[str, str]] = [
+        (PLANT_ISLAND, COLD),
+        (COLD_ISLAND, AIR),
+        (AIR_ISLAND, WATER),
+        (WATER_ISLAND, EARTH),
+        (EARTH_ISLAND, SHUGABUSH),
+        (SHUGABUSH_ISLAND, ETHEREAL),
+        (ETHEREAL_ISLAND, ETHEREALWORKSHOP),
+        (ETHEREALWORKSHOP_ISLAND, FIREHAVEN),
+        (FIREHAVEN_ISLAND, FIREOASIS),
+        (FIREOASIS_ISLAND, LIGHT),
+        (LIGHT_ISLAND, PSYCHIC),
+        (PSYCHIC_ISLAND, FAERIE),
+        (FAERIE_ISLAND, BONE),
+        (BONE_ISLAND, MAGICALSANCTUM),
+        (MAGICALSANCTUM_ISLAND, SEASONAL),
+        (SEASONAL_ISLAND, WUBLIN),
+        (MIRROR_PLANT_ISLAND, MIRROR_COLD),
+        (MIRROR_COLD_ISLAND, MIRROR_AIR),
+        (MIRROR_AIR_ISLAND, MIRROR_WATER),
+        (MIRROR_WATER_ISLAND, MIRROR_EARTH),
+    ]
+
     findClick(MAP)
-    findClick(NEXT)
-    findClick(GO, time = 4)
+
+    for current_island, next_button in island_sequence:
+        if isOnScreen(current_island):
+            findClick(next_button)
+            sleep(waitingTime)
+            findClick(GO, time=3)
+            sleep(2)
+    
+    # Special case
+    if isOnScreen(WUBLIN_ISLAND):         
+        print("WUBLINN")         
+        findClick(MIRROR)         
+        sleep(waitingTime)         
+        findClick(MIRROR_PLANT) 
+
+    # Special case for the last island
+    if isOnScreen(MIRROR_EARTH_ISLAND):
+        sleep(1)
+        findClick(UNMIRROR)
+        sleep(2)
+        findClick(PLANT)
+        sleep(2)
+        findClick(GO, time=3)
+        sleep(2)
+
+
+
+
+timeUntillRetry = 60 * 6
+
+def retry():
+    if isOnScreen(USE):
+        print("USING")
+        findClick(OK)
+        sleep(timeUntillRetry)
+        findClick(PLAY)
+
+    if isOnScreen(TIMEOUT):
+        print("TIMEOUT")
+        findClick(OK)
+        sleep(timeUntillRetry)
+        findClick(PLAY)
+
+    findClick(OK)
+    findClick(PLAY)
+    
+def closeNoti():
+    findClick(NOTI)
+    findClick(NOTI2)
+
+def closeMailbox():
+    if isOnScreen(MAILBOX):
+        print("MAILBOX")
+        findClick(CLOSE)
+
+def shutdown_pc():
+    print("Shutting down PC...")
+    if os.name == 'nt':  # For Windows
+        os.system('shutdown /s /t 1')
+    else:  # For Unix-based systems
+        os.system('sudo shutdown -h now')
 
 def main():
     """Closes notification, Then Main Loop."""
@@ -134,21 +262,39 @@ def main():
         scroll(-10)
     # closeNotification()
     # print("close notif")
+
+    iteration_count = 0
+    start_time = time.time()
+
     while True:
-        if keyboard.is_pressed('q'):
-            break
+        retry()
+        closeNoti()
+        closeMailbox()
+        #if keyboard.is_pressed('q'):
+        #    break
         collectAll()
-        if keyboard.is_pressed('q'):
-            break
         if collectFood():
             rebake()
-        if keyboard.is_pressed('q'):
-            break
+        collectFood()
         print("collected")
         changeMap()
-        if keyboard.is_pressed('q'):
-            break
+        sleep(1)
         print("map changed")
+
+
+        current_time = time.time()
+        if current_time - start_time >= RESTART_INTERVAL:
+            print(f"Running for {RESTART_INTERVAL/3600:.2f} hours. Restarting the PC.")
+            restart_pc()
+            break 
+        #current_time = time.time()
+        #if current_time - start_time >= HIBERNATION_INTERVAL:
+        #    print(f"Running for {HIBERNATION_INTERVAL/3600:.2f} hours. Initiating hibernation.")
+        #    hibernate_pc()
+        #    break  # Exit the loop after hibernation
+
+        if check_shutdown_time():
+            break
 
 main()
 
